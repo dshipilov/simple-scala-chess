@@ -22,6 +22,7 @@ Sample Game Session
 Interaction is done in a REPL (read/evaluate/print loop) style.
 
 Here is sample session outline:
+
     -- New game started --
 
         a   b   c   d   e   f   g   h
@@ -102,23 +103,24 @@ Here is sample session outline:
 Piece Abbreviations
 ===================
 
-P or p - pawn
-R or r - rook
-N or n - knight
-B or b - bishop
-Q or q - queen
-K or k - king
+* P or p - pawn
+* R or r - rook
+* N or n - knight
+* B or b - bishop
+* Q or q - queen
+* K or k - king
 
 Capital letters denote white pieces, lowcase letters are black pieces.
 
 SAN
 ===
 
-Stands for [Chess Standard Algebraic Notation](http://en.wikipedia.org/wiki/Algebraic_notation_(chess)). Used to describe piece moves.
+Stands for Chess [Standard Algebraic Notation](http://en.wikipedia.org/wiki/Algebraic_notation_(chess)). Used to describe piece moves.
 
 Each move is prefixed with a letter (could be omited for pawns) which identify piece to move (see abbreviations section above). Target position is defined next in a standard file/rank format (e.g. e5). When target position is ambigous (e.g. both knights could be moved there) player should identify source position (just rank or just file or both of them) _before_ the target position.
 
 Move command samples:
+
     white> e4
     black> e5
     white> Kf3
