@@ -5,7 +5,7 @@ trait Result
 case object NoOp extends Result
 case object Finished extends Result
 
-case class AmbigousMove(move: Move) extends Result
+case class AmbiguousMove(move: Move) extends Result
 case class InvalidMove(move: Move) extends Result
 
 case class Moved(move: Move) extends Result

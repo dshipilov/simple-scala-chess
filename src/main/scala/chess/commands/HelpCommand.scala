@@ -1,6 +1,6 @@
 package chess.commands
 
-import chess.{NoOp, Board}
+import chess.{Color, NoOp, Board}
 
 object HelpCommand extends Command with Parser {
   def apply(board : Board) = {
@@ -9,7 +9,7 @@ object HelpCommand extends Command with Parser {
     (board, NoOp)
   }
 
-  def parse(expr : String) = {
+  def parse(expr : String, color: Color) = {
     if (matches(expr)) {
       Option(HelpCommand)
     } else None

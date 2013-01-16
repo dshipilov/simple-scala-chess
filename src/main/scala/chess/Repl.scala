@@ -1,9 +1,10 @@
 package chess
 
 import commands.Commands
+import annotation.tailrec
 
 object Repl extends App {
-  def loop(board : Board, color : Color) : Unit = {
+  @tailrec def loop(board : Board, color : Color) : Unit = {
     def comp(color: Color) = color match {
       case White => Black
       case Black => White
@@ -12,7 +13,7 @@ object Repl extends App {
     printf("%s> ", color)
     Console.flush()
 
-    Commands(readLine()) match {
+    Commands(readLine(), color) match {
       case Some(cmd) => {
         val (updatedBoard, result) = cmd(board)
 
@@ -24,6 +25,8 @@ object Repl extends App {
 
           case Moved(_) | Captured(_, _) | Check(_, _) => {
             println(result)
+            updatedBoard.print
+
             loop(updatedBoard, comp(color))
           }
 
@@ -41,13 +44,14 @@ object Repl extends App {
     }
   }
 
-  val board = Board.initial
 
-  println("\nSimple Scala Chess v0.1")
+  Board.reset()
+
+  println("\nSimple Scala Chess")
   println("New Game Session Started\n")
   println("Type \"quit\" to exit program, \"help\" for some help\n")
 
-  Board.print(board)
+  Board.print()
 
-  loop(board, White)
+  loop(Board, White)
 }

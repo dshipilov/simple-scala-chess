@@ -1,24 +1,24 @@
 package chess.commands
 
-import chess.{Board, Result}
+import chess.{Color, Board, Result}
 
 trait Command extends Function[Board, (Board, Result)]
 
 trait Parser {
   def matches(expr: String) : Boolean
-  def parse(expr: String) : Option[Command]
+  def parse(expr: String, color: Color) : Option[Command]
 }
 
-object Commands extends Function[String, Option[Command]] {
+object Commands {
   val parsers = List[Parser](
     MoveCommand,
     HelpCommand,
     QuitCommand
   )
 
-  def apply(expr: String) =
+  def apply(expr: String, color : Color) : Option[Command] =
     parsers.find((p) => p.matches(expr)) match {
-      case Some(parser) => parser.parse(expr)
+      case Some(parser) => parser.parse(expr, color)
       case _ => None
     }
 }

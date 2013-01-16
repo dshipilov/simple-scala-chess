@@ -12,6 +12,6 @@ case class Piece(pieceType : PieceType, color : Color) extends PieceType {
     case White => pieceType.mnemonic.toUpper
   }
 
-  def validate(move:Move) : Boolean = pieceType.validate(move)
+  def validate(board: Board, move:Move) : Boolean = pieceType.validate(board, move)
 }
 

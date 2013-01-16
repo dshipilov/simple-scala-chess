@@ -1,13 +1,13 @@
 package chess.commands
 
-import chess.{Board, Finished}
+import chess.{Color, Board, Finished}
 
 object QuitCommand extends Command with Parser {
   def apply(board : Board) = {
     (board, Finished)
   }
 
-  def parse(expr : String) = {
+  def parse(expr : String, color: Color) = {
     if (matches(expr)) {
       Option(QuitCommand)
     } else None

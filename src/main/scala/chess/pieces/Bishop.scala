@@ -1,12 +1,11 @@
-package main.scala.chess.pieces
+package chess.pieces
 
-import chess.Move
-import chess.pieces.PieceType
+import chess.{Board, Move}
 
 case object Bishop extends PieceType {
   val mnemonic: Char = 'B'
 
-  def validate(move : Move) : Boolean = {
+  def validate(board: Board, move: Move) : Boolean = {
     true
   }
 }

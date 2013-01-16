@@ -1,13 +1,12 @@
 package chess.pieces
 
-import chess.Move
-import main.scala.chess.pieces._
+import chess.{Board, Move}
 import scala.Some
 
 trait PieceType {
   val mnemonic : Char
 
-  def validate(move : Move) : Boolean
+  def validate(board: Board, move : Move) : Boolean
 }
 
 object PieceType {
@@ -20,8 +19,12 @@ object PieceType {
     'K' -> King
   )
 
-  def apply(mnemonic : String) = mnemonic.length match {
-    case 0 => Pawn
-    case _ => pieces.get(mnemonic(0))
-  }
+  def apply(mnemonic : String) : PieceType =
+    Option(mnemonic) match {
+        case Some(s) if !s.isEmpty => pieces.get(mnemonic(0)) match {
+          case Some(p) => p
+          case _ => Pawn
+        }
+        case _ => Pawn
+    }
 }
