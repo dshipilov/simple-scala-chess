@@ -25,6 +25,12 @@ class Board extends Function[Position, Option[Piece]] {
 
   def apply(pos: Position) = pos2piece.get(pos)
 
+  def nearestPiece(pos: Position, dir: Direction) : (Option[Piece], Int) = {
+    val dist = pos.traverse(dir).count((pos) => this(pos).isEmpty)
+
+    (None, dist)
+  }
+
   /**
    * Prints current board state to the console in the ASCII mnemonic format
    */
@@ -102,14 +108,59 @@ object Board extends Board {
   }
 
   /**
-   * Does "unchecked" move for the piece under source position.
-   * WARNING! All move validation should be done before this call.
+   * Removes piece from specified board position
    *
-   * @param src source position of the piece
-   * @param dst destination position of the piece
+   * @param pos
+   */
+  def removeAt(pos: Position) : Piece = {
+    val piece = this(pos).get
+    val set = positions(piece)
+
+    piece2pos += (piece -> (set - pos))
+    pos2piece.remove(pos)
+
+    piece
+  }
+
+  /**
+   * Adds piece at specified board position
+   *
+   * @param pos
+   * @param piece
+   */
+  def addTo(pos: Position, piece: Piece) {
+    val set = positions(piece)
+
+    piece2pos += (piece -> (set + pos))
+    pos2piece += (pos -> piece)
+  }
+
+  /**
+   * Moves piece to the specified location
+   * WARNING! All piece-specific move validation should be done before this call.
+   *
+   * @param move move definition
    * @return Result of the move: Moved, Captured or InvalidMove if source position does not contain piece
    */
-  def move(src: Position, dst: Position) : Result = {
-    NoOp
-  }
+  def apply(move: Move) : (Board, Result) =
+    move.src match {
+      case Some(pos) if !this(pos).isEmpty =>
+        val sourcePiece = this(pos).get
+
+        this(move.dst) match {
+          case None =>
+            addTo(move.dst, removeAt(pos))
+            (this, Moved(move))
+
+          case Some(piece) if piece.color != sourcePiece.color =>
+            val captured = removeAt(move.dst)
+            removeAt(pos)
+            addTo(move.dst, sourcePiece)
+
+            (this, Captured(captured, move))
+
+          case _ => (this, InvalidMove(move))
+        }
+      case _ => (this, InvalidMove(move))
+    }
 }

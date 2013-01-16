@@ -2,12 +2,6 @@ package chess
 
 sealed trait Direction {
   val shift : (Int, Int)
-
-  // Adjust direction for particular piece color (need 180 degrees rotate for black pieces)
-  def apply(color: Color) : (Int, Int) = color match {
-    case Black => (shift._1 * (-1), shift._2 * (-1))
-    case White => shift
-  }
 }
 
 object Directions {
@@ -28,21 +22,7 @@ case class Position(file : Char, rank : Int) {
     val c1 = coord
     val c2 = pos.coord
 
-    (c2._1 - c1._1, c2._2 - c2._2)
-  }
-
-  def horizontal(pos: Position) = {
-    pos.coord._2 == coord._2
-  }
-
-  def vertical(pos: Position) = {
-    pos.coord._1 == coord._1
-  }
-
-  def diagonal(pos: Position) = {
-    val delta = diff(pos)
-
-    Math.abs(delta._1) == Math.abs(delta._2)
+    (c1._1 - c2._1, c1._2 - c2._2)
   }
 
   def shift(diff: (Int, Int)) : Option[Position] =
@@ -50,6 +30,8 @@ case class Position(file : Char, rank : Int) {
 
   def shift(dir: Direction) : Option[Position] =
     shift(dir.shift)
+
+  def traverse(dir: Direction) = new PositionIterator(this, dir)
 
   override def toString = file + rank.toString
 }
@@ -74,10 +56,43 @@ object Position {
 
   def apply(coord: (Int, Int)) : Option[Position] = coord match {
     case Tuple2(x, y)
-      if x >= Board.horizontal.start - 1 && x < Board.horizontal.end &&
-        y >= Board.vertical.start - 1 && y < Board.vertical.end =>
+      if Board.horizontal.contains((x + 'A').asInstanceOf[Char]) &&
+         Board.vertical.contains(y + 1) =>
       Option(Position(('A' + x).asInstanceOf[Char], y + 1))
 
     case _ => None
+  }
+
+  def direction(dst: Position, src: Position) : Option[Direction] = {
+    val diff = dst.diff(src)
+
+    diff match {
+      case Tuple2(x, y) if Math.abs(x) == Math.abs(y) =>
+        (x / Math.abs(x), y / Math.abs(y)) match {
+          case Directions.NE.shift => Option(Directions.NE)
+          case Directions.SE.shift => Option(Directions.SE)
+          case Directions.SW.shift => Option(Directions.SW)
+          case Directions.NW.shift => Option(Directions.NW)
+          case _ => None
+        }
+
+      case Tuple2(0, y) if y != 0 =>
+        if (y > 0) Option(Directions.N) else Option(Directions.S)
+
+      case Tuple2(x, 0) if x != 0 =>
+        if (x > 0) Option(Directions.E) else Option(Directions.W)
+
+      case _ => None
+    }
+  }
+}
+
+class PositionIterator(pos: Position, dir: Direction) extends Iterator[Position] {
+  var current = pos
+
+  def hasNext: Boolean = !current.shift(dir).isEmpty
+  def next(): Position = {
+    current = current.shift(dir).get
+    current
   }
 }
