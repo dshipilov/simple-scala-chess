@@ -117,7 +117,7 @@ class Board extends Function[Position, Option[Piece]] {
             attackingLine.map((dst) =>
               allPieces.count((p) => p match {
                 case (piece, piecePositions) =>
-                  piecePositions.count((src) => piece.pieceType.validate(this, Move(piece, dst, Option(src)))) > 0
+                  piecePositions.count((src) => piece.validate(this, Move(piece, dst, Option(src)))) > 0
                 case _ => false
               })).count((c) => c > 0) > 0
 
@@ -142,7 +142,7 @@ class Board extends Function[Position, Option[Piece]] {
       .filter((t) => t match { // only leave pieces that are able to attack the king
         case Some((piece, pos))
           if piece.color == color.complement &&
-             piece.pieceType.validate(this, Move(piece, position, Option(pos)))=>
+             piece.validate(this, Move(piece, position, Option(pos)))=>
           true
         case _ => false
       })

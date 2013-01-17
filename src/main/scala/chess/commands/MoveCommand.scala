@@ -27,14 +27,14 @@ object MoveCommand extends Parser {
 class MoveCommand(move: Move) extends Command {
   def apply(board: Board) = move.src match {
     case Some(src) if !board(src).isEmpty && board(src).get == move.piece =>
-      if (move.piece.pieceType.validate(board, move))
+      if (move.piece.validate(board, move))
         Board(move)
       else
         (board, InvalidMove(move))
 
     case _ =>
       val suitablePos = board.positions(move.piece).filter((pos) =>
-        move.piece.pieceType.validate(board, Move(move.piece, move.dst, Option(pos))))
+        move.piece.validate(board, Move(move.piece, move.dst, Option(pos))))
 
       if (!suitablePos.isEmpty)
         if(suitablePos.count((_) => true) == 1) {
