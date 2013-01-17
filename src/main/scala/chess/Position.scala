@@ -54,7 +54,16 @@ case class Position(file : Char, rank : Int) {
     }
   }
 
-  def traverse(dir: Direction) = new PositionIterator(this, dir)
+  def traverse(dir: Direction) = new PositionIterator(this, dir, None)
+
+  def traverse(till: Position) : Option[PositionIterator] =
+    Position.direction(till, this) match {
+      case Some(dir) =>
+        Option(new PositionIterator(this, dir, Option(till)))
+
+      case _ => None
+    }
+
 
   override def toString = file + rank.toString
 }
@@ -113,10 +122,14 @@ object Position {
   }
 }
 
-class PositionIterator(pos: Position, dir: Direction) extends Iterator[Position] {
+class PositionIterator(pos: Position, dir: Direction, until: Option[Position]) extends Iterator[Position] {
   var current = pos
 
-  def hasNext: Boolean = !current.shift(dir).isEmpty
+  def hasNext: Boolean = {
+    val next = current.shift(dir)
+
+    !next.isEmpty && (until.isEmpty || next != until)
+  }
   def next(): Position = {
     current = current.shift(dir).get
     current

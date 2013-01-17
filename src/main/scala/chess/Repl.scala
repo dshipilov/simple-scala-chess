@@ -32,6 +32,8 @@ object Repl extends App {
           }
 
           case CheckMate(_) => {
+            updatedBoard.print()
+
             println(result)
           }
 

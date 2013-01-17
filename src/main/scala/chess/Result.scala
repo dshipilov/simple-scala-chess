@@ -28,9 +28,9 @@ case class Captured(piece: Piece, move: Move) extends Result {
 }
 
 case class Check(move: Move) extends Result {
-  override def toString = String.format("%s: check for %s!", move.toString, Piece(King, move.piece.color))
+  override def toString = String.format("%s: check for the %s!", move.toString, Piece(King, move.piece.color))
 }
 
 case class CheckMate(move: Move) extends Result {
-  override def toString = String.format("%s: check and MATE for %s!", move.toString, Piece(King, move.piece.color))
+  override def toString = String.format("%s: CHECK and MATE for the %s!", move.toString, Piece(King, move.piece.color.complement))
 }

@@ -2,11 +2,11 @@ package chess
 
 import pieces._
 import collection.mutable.{HashMap, Set}
-import javax.swing.plaf.metal.MetalBorders.OptionDialogBorder
+import collection.mutable
 
 /**
  * Board represents current state of the chessboard
- * Class exposes only R/O functionality for analysing position
+ * Class exposes only R/O functionality for analysing current position
  *
  * Board state mutation are all in the object part of the board
  */
@@ -52,7 +52,7 @@ class Board extends Function[Position, Option[Piece]] {
     vertical.reverse.foreach((rank) => {
       val line =
         "%d |".format(rank) +
-          ('A' to 'H').map((file) => " %s |".format(
+          horizontal.map((file) => " %s |".format(
             pos2piece.get(Position(file, rank)) match {
               case Some(piece) => piece.mnemonic
               case None => " "
@@ -67,26 +67,85 @@ class Board extends Function[Position, Option[Piece]] {
     println()
   }
 
-  def inCheckPosition(color: Color) : Boolean = {
-    val theKing = Piece(King, color)
-    val thePosition = piece2pos(theKing).head // the king should always be on the board
+  def inCheckPosition(color: Color, pos: Position) : Boolean =
+    kingAttackingFoes(color, pos).count((_) => true) > 0
 
+  def inCheckPosition(color: Color) : Boolean = {
+    val pos = piece2pos(Piece(King, color)).head
+    inCheckPosition(color, pos)
+  }
+
+  /**
+   * Tests whether the king is able to escape from check.
+   * Player can:
+   *  - move around in a position not under check (the only protection against knight attack)
+   *  - move piece in front of attacking line
+   *
+   * @param color color to check
+   * @return true if board in mate position for the king of the specified color
+   */
+  def inMatePosition(color: Color) : Boolean = {
+    val king = Piece(King, color)
+    val position = piece2pos(king).head
+
+    // Check all the positions around
+    val positionsToEscape = Directions.all.map((dir) => position.shift(dir))
+      .filter((opt) =>
+      opt match {
+        case Some(pos) => King.validate(this, Move(king, position, Option(pos)))
+        case _ => false
+      })
+
+    if (positionsToEscape.count((pos) => !inCheckPosition(king.color, pos.get)) == 0) {
+      // Cannot escape to anywhere - try to move pieces onto attacking lines
+      val allPieces =
+        Set(Piece(Pawn, color), Piece(Rook, color), Piece(Knight, color), Piece(Bishop, color), Piece(Queen, color))
+          .map((piece) => (piece, piece2pos.get(piece).get))
+
+      /*
+       * The algorithm:
+       *  - iterate through positions on each attacking line
+       *  - for each position:
+       *    - grab all the pieces currently on the board
+       *    - count number of pieces that could be moved to this position
+       *    - return true if count is > 0
+       */
+      kingAttackingFoes(king.color, position).flatten.map(
+        (pair) => pair match { // Test whether attack on this line could be blocked by piece moving
+        case (piece, pos) => position.traverse(pos) match {
+          case Some(attackingLine) =>
+            attackingLine.map((dst) =>
+              allPieces.count((p) => p match {
+                case (piece, piecePositions) =>
+                  piecePositions.count((src) => piece.pieceType.validate(this, Move(piece, dst, Option(src)))) > 0
+                case _ => false
+              })).count((c) => c > 0) > 0
+
+          case _ => false
+        }
+      }).reduceLeft(_&&_) == true// should escape all the attacking lines
+    } else {
+      false // king can escape attack
+    }
+
+
+  }
+
+  def kingAttackingFoes(color: Color, position: Position) = {
     /*
      * Look around from king's position checking to see there's some foe figures in attacking position
      */
     val foeKnight = Piece(Knight, color.complement)
 
-    val attackingFoes = Directions.all.map((dir) => nearestPiece(thePosition, dir))
+    Directions.all.map((dir) => nearestPiece(position, dir))
       .union(piece2pos(foeKnight).map((pos) => Option((foeKnight, pos)))) // also mixin foe knights currently on the board
       .filter((t) => t match { // only leave pieces that are able to attack the king
         case Some((piece, pos))
           if piece.color == color.complement &&
-             piece.pieceType.validate(this, Move(piece, thePosition, Option(pos)))=>
+             piece.pieceType.validate(this, Move(piece, position, Option(pos)))=>
           true
         case _ => false
       })
-
-    attackingFoes.count((_) => true) > 0
   }
 }
 
@@ -173,6 +232,9 @@ object Board extends Board {
       addTo(move.dst, captured.get) // Return captured piece back to the board
   }
 
+  /**
+   * Verifies that last move did not cause check. If not - undoes move
+   */
   def lastMoveCausesCheck(last: Move, capture: Option[Piece]) : Boolean = {
     if(inCheckPosition(last.piece.color)) {
       undoMove(last, capture)
@@ -199,7 +261,10 @@ object Board extends Board {
             if (lastMoveCausesCheck(move, None))
               (this, MoveCausesCheck(move))
             else if (inCheckPosition(move.piece.color.complement))
-              (this, Check(move))
+              if (inMatePosition(move.piece.color.complement))
+                (this, CheckMate(move))
+              else
+                (this, Check(move))
             else
               (this, Moved(move))
 
