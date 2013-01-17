@@ -2,7 +2,7 @@ package chess
 
 import pieces._
 import collection.mutable.{HashMap, Set}
-import collection.mutable
+import javax.swing.plaf.metal.MetalBorders.OptionDialogBorder
 
 /**
  * Board represents current state of the chessboard
@@ -33,7 +33,7 @@ class Board extends Function[Position, Option[Piece]] {
    * @param dir
    * @return
    */
-  def nearestPiece(pos: Position, dir: Direction) : Option[Tuple2[Piece, Position]] =
+  def nearestPiece(pos: Position, dir: Direction) : Option[(Piece, Position)] =
     pos.traverse(dir).find((pos) => !this(pos).isEmpty) match {
       case Some(pos) => Option((this(pos).get, pos))
       case _ => None
@@ -65,6 +65,28 @@ class Board extends Function[Position, Option[Piece]] {
 
     println(filesRow)
     println()
+  }
+
+  def inCheckPosition(color: Color) : Boolean = {
+    val theKing = Piece(King, color)
+    val thePosition = piece2pos(theKing).head // the king should always be on the board
+
+    /*
+     * Look around from king's position checking to see there's some foe figures in attacking position
+     */
+    val foeKnight = Piece(Knight, color.complement)
+
+    val attackingFoes = Directions.all.map((dir) => nearestPiece(thePosition, dir))
+      .union(piece2pos(foeKnight).map((pos) => Option((foeKnight, pos)))) // also mixin foe knights currently on the board
+      .filter((t) => t match { // only leave pieces that are able to attack the king
+        case Some((piece, pos))
+          if piece.color == color.complement &&
+             piece.pieceType.validate(this, Move(piece, thePosition, Option(pos)))=>
+          true
+        case _ => false
+      })
+
+    attackingFoes.count((_) => true) > 0
   }
 }
 
@@ -142,6 +164,23 @@ object Board extends Board {
   }
 
   /**
+   * Reverts board position back to the previous state
+   */
+  def undoMove(move: Move, captured: Option[Piece]) : Unit = {
+    addTo(move.src.get, removeAt(move.dst)) // Undo move
+
+    if (!captured.isEmpty)
+      addTo(move.dst, captured.get) // Return captured piece back to the board
+  }
+
+  def lastMoveCausesCheck(last: Move, capture: Option[Piece]) : Boolean = {
+    if(inCheckPosition(last.piece.color)) {
+      undoMove(last, capture)
+      true
+    } else false
+  }
+
+  /**
    * Moves piece to the specified location
    * WARNING! All piece-specific move validation should be done before this call.
    *
@@ -156,14 +195,23 @@ object Board extends Board {
         this(move.dst) match {
           case None =>
             addTo(move.dst, removeAt(pos))
-            (this, Moved(move))
+
+            if (lastMoveCausesCheck(move, None))
+              (this, MoveCausesCheck(move))
+            else if (inCheckPosition(move.piece.color.complement))
+              (this, Check(move))
+            else
+              (this, Moved(move))
 
           case Some(piece) if piece.color != sourcePiece.color =>
             val captured = removeAt(move.dst)
             removeAt(pos)
             addTo(move.dst, sourcePiece)
 
-            (this, Captured(captured, move))
+            if (lastMoveCausesCheck(move, Option(captured)))
+              (this, MoveCausesCheck(move))
+            else
+              (this, Captured(captured, move))
 
           case _ => (this, InvalidMove(move))
         }

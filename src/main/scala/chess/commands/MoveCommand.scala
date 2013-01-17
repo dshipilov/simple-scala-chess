@@ -13,10 +13,10 @@ object MoveCommand extends Parser {
     val matcher(p, s, d) = expr
 
     (PieceType(p), Position(s), Position(d)) match {
-      case Tuple3(piece, Some(src), Some(dst)) =>
+      case (piece, Some(src), Some(dst)) =>
         Option(new MoveCommand(Move(Piece(piece, color), dst, Option(src))))
 
-      case Tuple3(piece, None, Some(dst)) =>
+      case (piece, None, Some(dst)) =>
         Option(new MoveCommand(Move(Piece(piece, color), dst, None)))
 
       case _ => None

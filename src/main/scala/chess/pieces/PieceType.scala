@@ -24,7 +24,7 @@ trait PieceType {
     Position.direction(move.dst, src) match {
       case Some(dir) if directions.contains(dir) && !moveDistance.isEmpty =>
         board.nearestPiece(src, dir) match {
-          case Some(Tuple2(piece, pos)) =>
+          case Some((piece, pos)) =>
             val limit =
               if (maxMoveDistance.isEmpty)
                 src.distance(pos).get

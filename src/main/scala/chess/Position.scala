@@ -47,9 +47,9 @@ case class Position(file : Char, rank : Int) {
 
   def distance(pos: Position) : Option[Int] = {
     diff(pos) match {
-      case Tuple2(x, y) if Math.abs(x) == Math.abs(y) => Option(Math.abs(x))
-      case Tuple2(0, y) => Option(Math.abs(y))
-      case Tuple2(x, 0) => Option(Math.abs(x))
+      case (x, y) if Math.abs(x) == Math.abs(y) => Option(Math.abs(x))
+      case (0, y) => Option(Math.abs(y))
+      case (x, 0) => Option(Math.abs(x))
       case _ => None
     }
   }
@@ -68,7 +68,7 @@ object Position {
         val pattern(fileStr, rankStr) = str
 
         (Option(fileStr), Option(rankStr)) match {
-          case Tuple2(Some(f), Some(r)) if !f.isEmpty && !r.isEmpty =>
+          case (Some(f), Some(r)) if !f.isEmpty && !r.isEmpty =>
             Option(Position(f(0).toUpper, Integer.parseInt(r)))
 
           case _ => None
@@ -78,7 +78,7 @@ object Position {
     }
 
   def apply(coord: (Int, Int)) : Option[Position] = coord match {
-    case Tuple2(x, y)
+    case (x, y)
       if Board.horizontal.contains((x + 'A').asInstanceOf[Char]) &&
          Board.vertical.contains(y + 1) =>
       Option(Position(('A' + x).asInstanceOf[Char], y + 1))
@@ -91,7 +91,7 @@ object Position {
 
     diff match {
       // Recognizes diagonal moves
-      case Tuple2(x, y) if Math.abs(x) == Math.abs(y) =>
+      case (x, y) if Math.abs(x) == Math.abs(y) =>
         (x / Math.abs(x), y / Math.abs(y)) match {
           case Directions.NE.shift => Option(Directions.NE)
           case Directions.SE.shift => Option(Directions.SE)
@@ -101,11 +101,11 @@ object Position {
         }
 
       // Vertical moves
-      case Tuple2(0, y) if y != 0 =>
+      case (0, y) if y != 0 =>
         if (y > 0) Option(Directions.N) else Option(Directions.S)
 
       // Horizontal moves
-      case Tuple2(x, 0) if x != 0 =>
+      case (x, 0) if x != 0 =>
         if (x > 0) Option(Directions.E) else Option(Directions.W)
 
       case _ => None

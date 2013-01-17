@@ -19,15 +19,15 @@ case object Pawn extends PieceType {
 
     move.dst.diff(src) match {
       // Pawn regular movement rule
-      case Tuple2(0, y) if y == offset => board(move.dst).isEmpty
+      case (0, y) if y == offset => board(move.dst).isEmpty
 
       // Pawn capture rule
-      case Tuple2(x, y) if Math.abs(x) == 1 && y == offset =>
+      case (x, y) if Math.abs(x) == 1 && y == offset =>
         val piece = board(move.dst)
         !piece.isEmpty && piece.get.color.complement == move.piece.color
 
       // Pawn starting move rule
-      case Tuple2(0, y) if y == 2 * offset =>
+      case (0, y) if y == 2 * offset =>
         src.rank == pawnStartRank
 
       case _ => false

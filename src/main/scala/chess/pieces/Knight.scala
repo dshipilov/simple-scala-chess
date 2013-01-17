@@ -9,8 +9,8 @@ case object Knight extends PieceType {
     val diff = move.dst.diff(move.src.get)
 
     (Math.abs(diff._1), Math.abs(diff._2)) match {
-      case Tuple2(2, 1) => true
-      case Tuple2(1, 2) => true
+      case (2, 1) => true
+      case (1, 2) => true
       case _ => false
     }
   }
