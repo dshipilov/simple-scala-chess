@@ -1,11 +1,8 @@
 package chess.pieces
 
-import chess.{Board, Move}
+import chess.{Direction, Directions}
 
 case object Rook extends PieceType {
   val mnemonic: Char = 'R'
-
-  def validate(board:Board, move : Move) : Boolean = {
-    true
-  }
+  override val directions = Set[Direction](Directions.N, Directions.S, Directions.W, Directions.E)
 }

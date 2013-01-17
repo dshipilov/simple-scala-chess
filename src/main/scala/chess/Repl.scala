@@ -18,15 +18,16 @@ object Repl extends App {
         val (updatedBoard, result) = cmd(board)
 
         result match {
-          case InvalidMove(_) => {
+          case InvalidMove(_) | AmbiguousMove(_) => {
             println(result)
+
             loop(board, color)
           }
 
-          case Moved(_) | Captured(_, _) | Check(_, _) => {
+          case Moved(_) | Captured(_,_) | Check(_,_) => {
             println(result)
-            updatedBoard.print
 
+            updatedBoard.print()
             loop(updatedBoard, comp(color))
           }
 

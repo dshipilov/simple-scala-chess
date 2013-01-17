@@ -1,27 +1,36 @@
 package chess.pieces
 
 import chess.{Black, White, Board, Move}
-import java.math.MathContext
 
 case object Pawn extends PieceType {
   val mnemonic: Char = 'P'
 
-  def validate(board: Board, move : Move) : Boolean = move.src match {
-    case Some(src)
-      if !board(src).isEmpty && board(src).get.pieceType == Pawn =>
+  override def validate(board: Board, move : Move) : Boolean = {
+    val src = move.src.get
+    val offset = move.piece.color match {
+      case White => 1
+      case Black => -1
+    }
 
-      val offset = move.piece.color match {
-        case White => 1
-        case Black => -1
-      }
+    val pawnStartRank = move.piece.color match {
+      case White => Board.vertical.start + 1
+      case Black => Board.vertical.end - 1
+    }
 
-      move.dst.diff(src) match {
-        case Tuple2(0, y) if y == offset => true // TODO: fix this
-        case Tuple2(x, y) if Math.abs(x) == 1 => true // TODO: fix this
+    move.dst.diff(src) match {
+      // Pawn regular movement rule
+      case Tuple2(0, y) if y == offset => board(move.dst).isEmpty
 
-        case _ => false
-      }
+      // Pawn capture rule
+      case Tuple2(x, y) if Math.abs(x) == 1 && y == offset =>
+        val piece = board(move.dst)
+        !piece.isEmpty && piece.get.color.complement == move.piece.color
 
-    case _ => false
+      // Pawn starting move rule
+      case Tuple2(0, y) if y == 2 * offset =>
+        src.rank == pawnStartRank
+
+      case _ => false
+    }
   }
 }

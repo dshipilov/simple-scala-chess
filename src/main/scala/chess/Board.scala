@@ -1,7 +1,8 @@
 package chess
 
 import pieces._
-import collection.mutable.HashMap
+import collection.mutable.{HashMap, Set}
+import collection.mutable
 
 /**
  * Board represents current state of the chessboard
@@ -25,11 +26,18 @@ class Board extends Function[Position, Option[Piece]] {
 
   def apply(pos: Position) = pos2piece.get(pos)
 
-  def nearestPiece(pos: Position, dir: Direction) : (Option[Piece], Int) = {
-    val dist = pos.traverse(dir).count((pos) => this(pos).isEmpty)
-
-    (None, dist)
-  }
+  /**
+   * Find nearest piece from the given position on the given direction
+   *
+   * @param pos
+   * @param dir
+   * @return
+   */
+  def nearestPiece(pos: Position, dir: Direction) : Option[Tuple2[Piece, Position]] =
+    pos.traverse(dir).find((pos) => !this(pos).isEmpty) match {
+      case Some(pos) => Option((this(pos).get, pos))
+      case _ => None
+    }
 
   /**
    * Prints current board state to the console in the ASCII mnemonic format
@@ -97,12 +105,10 @@ object Board extends Board {
 
     List(White, Black).foreach((color) => {
       piecesRank(color).foreach((t) => {
-        piece2pos += Tuple2(t._1,Set(t._2))
-        pos2piece += t.swap
+        addTo(t._2, t._1)
       })
       pawnsRank(color).foreach((t) => {
-        piece2pos += Tuple2(t._1,Set(t._2))
-        pos2piece += t.swap
+        addTo(t._2, t._1)
       })
     })
   }
