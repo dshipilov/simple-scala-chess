@@ -135,6 +135,12 @@ Captures and check/checkmate should be automatically detected by the program and
 
 Castling moves and pawn promotions support is optional in the program implementation.
 
+Building
+========
+
+You need sbt tool to build/run the project. Just clone the repository and cd into simple-scala-chess/ directory and run sbt.
+Code is implemented against scalac version 2.10.
+
 Implementation Details
 ======================
 
