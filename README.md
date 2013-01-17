@@ -123,7 +123,7 @@ Move command samples:
 
     white> e4
     black> e5
-    white> Kf3
+    white> Nf3
     black> Bc5
 
 * white move king's pawn into postion e4
